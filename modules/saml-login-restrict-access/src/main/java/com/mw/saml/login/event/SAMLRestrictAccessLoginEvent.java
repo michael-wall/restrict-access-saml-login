@@ -66,6 +66,8 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 		
 		if (Validator.isNull(samlSpSession)) return; // Don't do anything if not a SAML Login...
 		
+		_log.info("samlSpSession createDate: " + samlSpSession.getCreateDate());
+		
 		HttpServletRequest request = lifecycleEvent.getRequest();
         HttpServletResponse response = lifecycleEvent.getResponse();
 		
@@ -74,6 +76,8 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 		User user = _userLocalService.fetchUserById(userId);
 		
 		if (user != null) {
+			_log.info("Verifying Roles for: " + user.getFullName());
+			
 			PermissionChecker permissionChecker = PermissionCheckerFactoryUtil.create(user);
 			
 			if (hasRestrictedRegularRole(permissionChecker) || hasRestrictedSiteRole(permissionChecker)) {		
