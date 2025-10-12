@@ -33,27 +33,25 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 @Component(
-	immediate = true, property = "key=login.events.post",
+	immediate = true, property = "key=login.events.pre",
 	service = {
 		LifecycleAction.class,
 	}
 )
-public class SAMLRestrictAccessPostLoginEvent implements LifecycleAction {
+public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 	
 	@Activate
 	protected void activate(Map<String, Object> properties) {
 		if (_log.isInfoEnabled()) _log.info("Activating");
 		
-		_restrictAccessEnabled = GetterUtil.getBoolean(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_POST_LOGIN_EVENT_ENABLED), false);
+		_restrictAccessEnabled = GetterUtil.getBoolean(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_ENABLED), false);
 		
 		_log.info("restrictAccessEnabled: " + _restrictAccessEnabled);
 
 		if (_restrictAccessEnabled) {
-			regularRoleIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_POST_LOGIN_EVENT_REGULAR_ROLE_IDS), ""));
-
-			siteGroupIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_POST_LOGIN_EVENT_SITE_GROUP_IDS), ""));
-			
-			siteRoleIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_POST_LOGIN_EVENT_SITE_ROLE_IDS), ""));
+			regularRoleIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_REGULAR_ROLE_IDS), ""));
+			siteGroupIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_SITE_GROUP_IDS), ""));
+			siteRoleIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_SITE_ROLE_IDS), ""));
 		}
 		
 		if (_log.isInfoEnabled()) _log.info("Activated");
@@ -100,7 +98,7 @@ public class SAMLRestrictAccessPostLoginEvent implements LifecycleAction {
 	private boolean hasRestrictedRegularRole(PermissionChecker permissionChecker) {
 		if (permissionChecker.isOmniadmin() || permissionChecker.isCompanyAdmin(permissionChecker.getCompanyId())) return true;
 		
-		// Check based on custom regular role restrictions from restrict.access.post.login.event.regularRoleIds
+		// Check based on custom regular role restrictions from restrict.access.login.event.regularRoleIds
 		if (regularRoleIds != null || regularRoleIds.length > 0) {
 			long[] usersRegularRoleIds = getUsersRegularRoleIds(permissionChecker);
 			
@@ -133,7 +131,7 @@ public class SAMLRestrictAccessPostLoginEvent implements LifecycleAction {
 			if (permissionChecker.isGroupAdmin(siteGroupId) || permissionChecker.isGroupOwner(siteGroupId)) return true;
 			if (permissionChecker.isContentReviewer(permissionChecker.getCompanyId(), siteGroupId)) return true;
 
-			// Check based on custom site role restrictions from restrict.access.post.login.event.siteRoleIds
+			// Check based on custom site role restrictions from restrict.access.login.event.siteRoleIds
 			if (siteRoleIds != null || siteRoleIds.length > 0) {
 				long[] usersSiteRoleIds = permissionChecker.getRoleIds(permissionChecker.getUserId(), siteGroupId);
 				
@@ -191,5 +189,5 @@ public class SAMLRestrictAccessPostLoginEvent implements LifecycleAction {
 	private long siteGroupIds[];
 	private long siteRoleIds[];
 	
-	private static final Log _log = LogFactoryUtil.getLog(SAMLRestrictAccessPostLoginEvent.class);	 
+	private static final Log _log = LogFactoryUtil.getLog(SAMLRestrictAccessLoginEvent.class);	 
 }
