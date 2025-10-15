@@ -63,10 +63,10 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 		if (!_restrictAccessEnabled) return; // Don't do anything...
 		
 		SamlSpSession samlSpSession = getSamlSpSession(lifecycleEvent);
-		
+				
 		if (Validator.isNull(samlSpSession)) return; // Don't do anything if not a SAML Login...
 		
-		_log.info("samlSpSession createDate: " + samlSpSession.getCreateDate());
+		_log.debug("samlSpSession createDate: " + samlSpSession.getCreateDate());
 		
 		HttpServletRequest request = lifecycleEvent.getRequest();
         HttpServletResponse response = lifecycleEvent.getResponse();
@@ -84,8 +84,8 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 				_log.info("Forcing logout for: " + permissionChecker.getUser().getFullName());
 
 	            try {
-	            	 // Force logout
-	                response.sendRedirect(request.getContextPath() + "/c/portal/logout");
+	            	 // Force logout by redirecting to /c/portal/logout
+	                response.sendRedirect(request.getContextPath() + SAMLRestrictAccessConstants.LOGOUT_PATH);
 	            } catch (IOException e) {
 	            	 //Fallback
 					HttpSession session = request.getSession(false);

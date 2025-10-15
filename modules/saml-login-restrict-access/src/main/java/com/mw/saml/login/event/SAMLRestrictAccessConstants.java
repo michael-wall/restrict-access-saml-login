@@ -2,6 +2,8 @@ package com.mw.saml.login.event;
 
 public class SAMLRestrictAccessConstants {
 	
+	public static final String LOGOUT_PATH = "/c/portal/logout";
+	
 	public interface PORTAL_PROPERTIES {
 		public static final String RESTRICT_ACCESS_LOGIN_EVENT_ENABLED = "restrict.access.login.event.enabled";
 		
