@@ -2,7 +2,7 @@
 - This 'proof of concept' is designed for the scenario of preventing users with Administrator or other privileged Roles from logging into specific node(s) in a Liferay DXP implementation that has 'public' and 'private' nodes.
 - The implementation is a custom OSGi module containing a LifecycleAction OSGi component that will check a SAML users Regular Roles and Site Roles in Liferay and determine whether a forced logout should be triggered for the user.
 - It is specifically designed for use with SAML SSO where Liferay is the SAML SP using the out of the box SAML SP implementation. If the user has not logged in with out of the box Liferay SAML SP then it will not do anything.
-- If a user is logged out by the component, a standard Liferay 'danger toast' with the message 'You are not permitted to login to this node. Please login to the Admin node instead.' will be displayed in the bottom right of the screen after the logout redirection completes.
+- If a user is logged out by the component, a standard Liferay 'danger toast' is triggered using a custom Dynamic Include. It shows message 'You are not permitted to login to this node. Please login to the Admin node instead.' and will be displayed for 10 seconds in the bottom right of the screen after the logout redirection completes.
 
 ## Performed Checks ##
 - Based on the setup it will force a logout in the following scenarios for a SAML SSO user:
@@ -13,14 +13,28 @@
   - If the user has any of the specified Site Roles in any of the specified Sites (as defined in the custom ...siteGroupIds and ...siteRoleIds portal properties).
 
 ## Setup ##
-- Add the following portal properties to the specific node(s) of the target environment cluster where the privileged users should NOT be able to login:
+- Add the following portal properties to the nodes of the target environment:
 
-| Property  | Type | Sample | Description |
+| Property  | Type | Default | Description |
 | -------- | ------- | ------- |  ------- |
-| restrict.access.login.event.enabled | boolean | true | Set to true to enforce the restrictions. Set to false to not enforce restrictions.|
-| restrict.access.login.event.regularRoleIds | comma separated IDs | 43787,43788,43791 | Comma separated list of Regular roleIds. These can be roleIds from out of the box Regular Roles or custom Regular Roles. Leave empty or don't include if this check not required. |
-| restrict.access.login.event.siteGroupIds | comma separated IDs | 43375,43482,43555 | Comma separated list of Site groupIds. These are the Sites whose Site Roles should be checked. Leave empty or don't include if this check is not required. |
-| restrict.access.login.event.siteRoleIds | comma separated IDs | 43793,43794,43797 | Comma separated list of Site Role roleIds. These can be the roleIds from out of the box Site Roles or custom Site Roles. If using this check then the ...siteGroupIds property must also be populated. Leave empty or don't include if not applicable |
+| restrict.access.login.event.enabled | boolean | false | Set to true to enforce the restrictions for the current node. Set to false to not enforce restrictions.|
+| restrict.access.login.event.regularRoleIds | comma separated IDs | empty string | Comma separated list of Regular roleId values. These can be roleIds from out of the box Regular Roles or from custom Regular Roles. Leave empty or don't include the property if this check not required. |
+| restrict.access.login.event.siteGroupIds | comma separated IDs | empty string | Comma separated list of Site groupId values. These are the Sites whose Site Roles should be checked. Leave empty or don't include the property if this check is not required. |
+| restrict.access.login.event.siteRoleIds | comma separated IDs | empty string | Comma separated list of Site Role roleId values. These can be the roleIds from out of the box Site Roles or from custom Site Roles. If using this check then the siteGroupIds property must also be populated. Leave empty or don't include if this chek is not applicable. |
+  - Sample properties for a node where privileged uses are NOT allowed to login: 
+```
+restrict.access.login.event.enabled=true
+restrict.access.login.event.regularRoleIds=43787,43788,43791
+restrict.access.login.event.siteGroupIds=43375,43482,43555
+restrict.access.login.event.siteRoleIds=43793,43794,43797
+```
+  - Sample properties for a node where privileged uses are allowed to login: 
+```
+restrict.access.login.event.enabled=false
+restrict.access.login.event.regularRoleIds=
+restrict.access.login.event.siteGroupIds=
+restrict.access.login.event.siteRoleIds=
+```
 
 - Build the custom OSGi module.
 - Start the Liferay node and custom OSGi module.
@@ -47,6 +61,23 @@
 2025-10-17 16:11:09.008 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:97] User hasn't got restricted role: barry white
 ```
 
+## Removing the Liferay 'danger toast' ##
+- Remove the cookie setting logic from com.mw.saml.login.event.SAMLRestrictAccessLoginEvent.java:
+```
+Cookie cookie = new Cookie(SAMLRestrictAccessConstants.COOKIES.SAML_LOGIN_RESTRICT_ACCESS, SAMLRestrictAccessException.class.getSimpleName());
+cookie.setMaxAge(3); // Persistent for 3 seconds to reduce the likelihood of the DynamicInclude being triggered more than once...
+CookiesManagerUtil.addCookie(CookiesConstants.CONSENT_TYPE_NECESSARY, cookie, httpServletRequest, httpServletResponse);
+```
+- Remove the Dynamic Include class:
+```
+com.mw.saml.login.event.SAMLRestrictAccessJSPDynamicInclude.java
+```
+- Remove the Dynamic Include JSPs:
+```
+META-INF/resources/dynamic_include/init.jsp
+META-INF/resources/dynamic_include/saml_restrict_access_error.jsp
+```
+  
 ## Notes ##
 - This is a ‘proof of concept’ that is being provided ‘as is’ without any support coverage or warranty.
 - The implementation uses a custom OSGi module meaning it is compatible with Liferay DXP Self-Hosted and Liferay PaaS. It is not compatible with Liferay SaaS.
