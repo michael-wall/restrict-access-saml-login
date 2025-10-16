@@ -3,7 +3,7 @@
 - The implementation is a custom OSGi module containing a LifecycleAction OSGi component that will check a SAML users Regular Roles and Site Roles in Liferay and determine whether a forced logout should be triggered for the user.
 - It is specifically designed for use with SAML SSO where Liferay is the SAML SP using the out of the box SAML SP implementation. If the user has not logged in with out of the box Liferay SAML SP then it will not do anything.
 - The solution assumes that each Liferay cluster node has a unique portal properties file that can be configured specifically for that Liferay cluster node.
-- If a user is logged out by the component, a standard Liferay 'danger toast' is triggered using a custom Dynamic Include. It shows the message 'You are not permitted to login to this node. Please login to the Admin node instead.' which will be displayed for 10 seconds in the bottom right of the screen after the logout redirection completes.
+- If a user is logged out by the component, a standard Liferay 'danger toast' is triggered using a custom Dynamic Include. The error message will be displayed for 10 seconds in the bottom right of the screen after the logout redirection completes:
 
 ![Error Message](screenshots/restricted_error_message.jpg)
 
