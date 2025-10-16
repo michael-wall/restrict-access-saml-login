@@ -1,3 +1,4 @@
 Bundle-Name: saml-login-restrict-access
 Bundle-SymbolicName: com.mw.saml.login.restrict.access
 Bundle-Version: 1.0.0
+Web-ContextPath: /saml-login-restrict-access

@@ -1,0 +1,15 @@
+<%@ include file="./init.jsp" %>
+
+<c:if test='<%= SessionMessages.contains(request, SAMLRestrictAccessException.class.getSimpleName()) %>'>
+	<liferay-util:buffer var="msg">
+		<liferay-ui:message key="you-are-not-permitted-to-login-to-this-node-please-login-to-the-admin-node-instead" />
+	</liferay-util:buffer>
+	
+	<aui:script>
+		Liferay.Util.openToast({
+			message: '<%= HtmlUtil.escapeJS(msg) %>',
+			type: 'danger',
+			autoClose: 10000,
+		});
+	</aui:script>
+</c:if>

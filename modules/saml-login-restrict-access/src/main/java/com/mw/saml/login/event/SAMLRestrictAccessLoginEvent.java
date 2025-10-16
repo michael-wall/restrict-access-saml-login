@@ -1,5 +1,7 @@
 package com.mw.saml.login.event;
 
+import com.liferay.portal.kernel.cookies.CookiesManagerUtil;
+import com.liferay.portal.kernel.cookies.constants.CookiesConstants;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.events.LifecycleAction;
 import com.liferay.portal.kernel.events.LifecycleEvent;
@@ -24,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -68,8 +71,8 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 		
 		_log.debug("samlSpSession createDate: " + samlSpSession.getCreateDate());
 		
-		HttpServletRequest request = lifecycleEvent.getRequest();
-        HttpServletResponse response = lifecycleEvent.getResponse();
+		HttpServletRequest httpServletRequest = lifecycleEvent.getRequest();
+        HttpServletResponse httpServletResponse = lifecycleEvent.getResponse();
 		
 		long userId = samlSpSession.getUserId();
 				
@@ -84,12 +87,21 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 				_log.info("Forcing logout for: " + permissionChecker.getUser().getFullName());
 
 	            try {
+	        		Cookie cookie = new Cookie(SAMLRestrictAccessConstants.COOKIES.SAML_LOGIN_RESTRICT_ACCESS, SAMLRestrictAccessException.class.getSimpleName());
+
+	        		cookie.setMaxAge(5); // Persistent for 5 seconds
+
+	        		CookiesManagerUtil.addCookie(CookiesConstants.CONSENT_TYPE_NECESSARY, cookie, httpServletRequest, httpServletResponse);
+	            	
 	            	 // Force logout by redirecting to /c/portal/logout
-	                response.sendRedirect(request.getContextPath() + SAMLRestrictAccessConstants.LOGOUT_PATH);
+	            	httpServletResponse.sendRedirect(httpServletRequest.getContextPath() + SAMLRestrictAccessConstants.LOGOUT_PATH);
+	            	
 	            } catch (IOException e) {
+	            	_log.error(e.getClass() + ": " + e.getMessage());
+	            	
 	            	 //Fallback
-					HttpSession session = request.getSession(false);
-		            if (session != null) session.invalidate();
+					HttpSession httpSession = httpServletRequest.getSession(false);
+		            if (httpSession != null) httpSession.invalidate();
 	            	
 	                throw new ActionException(e);
 	            }	            

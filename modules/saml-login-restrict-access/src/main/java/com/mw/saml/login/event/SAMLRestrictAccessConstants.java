@@ -4,6 +4,10 @@ public class SAMLRestrictAccessConstants {
 	
 	public static final String LOGOUT_PATH = "/c/portal/logout";
 	
+	public interface COOKIES {
+		public static final String SAML_LOGIN_RESTRICT_ACCESS = "SAML_LOGIN_RESTRICT_ACCESS";
+	}
+	
 	public interface PORTAL_PROPERTIES {
 		public static final String RESTRICT_ACCESS_LOGIN_EVENT_ENABLED = "restrict.access.login.event.enabled";
 		
