@@ -5,7 +5,7 @@
 - The solution assumes that each Liferay cluster node has a unique portal properties file that can be configured specifically for that Liferay cluster node.
 - If a user is logged out by the component, a standard Liferay 'danger toast' is triggered using a custom Dynamic Include. It shows the message 'You are not permitted to login to this node. Please login to the Admin node instead.' which will be displayed for 10 seconds in the bottom right of the screen after the logout redirection completes.
 
-![Error Message](screenshots/error_message.jpg)
+![Error Message](screenshots/restricted_error_message.jpg)
 
 ## Performed Checks ##
 - Based on the setup it will force a logout in the following scenarios for a SAML SSO user:
