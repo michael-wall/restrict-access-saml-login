@@ -68,7 +68,7 @@ restrict.access.login.event.siteRoleIds=
 - Remove the cookie setting logic from com.mw.saml.login.event.SAMLRestrictAccessLoginEvent.java:
 ```
 Cookie cookie = new Cookie(SAMLRestrictAccessConstants.COOKIES.SAML_LOGIN_RESTRICT_ACCESS, SAMLRestrictAccessException.class.getSimpleName());
-cookie.setMaxAge(3); // Persistent for 3 seconds to reduce the likelihood of the DynamicInclude being triggered more than once...
+cookie.setMaxAge(COOKIE_MAX_AGE_SECONDS);
 CookiesManagerUtil.addCookie(CookiesConstants.CONSENT_TYPE_NECESSARY, cookie, httpServletRequest, httpServletResponse);
 ```
 - Remove the Dynamic Include class:

@@ -43,6 +43,8 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 	
+	public static final int COOKIE_MAX_AGE_SECONDS = 3;
+	
 	@Activate
 	protected void activate(Map<String, Object> properties) {
 		if (_log.isInfoEnabled()) _log.info("Activating");
@@ -91,7 +93,7 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 	            	// Meaning we can't pass it in session for the DynamicInclude to pick up...
 	            	// Similarly we can't pass as a reguest parameter since it will be ignored / dropped.
 	        		Cookie cookie = new Cookie(SAMLRestrictAccessConstants.COOKIES.SAML_LOGIN_RESTRICT_ACCESS, SAMLRestrictAccessException.class.getSimpleName());
-	        		cookie.setMaxAge(3);
+	        		cookie.setMaxAge(COOKIE_MAX_AGE_SECONDS); //Persistent cookie with short duration so it is picked up by the Dynamic Include, not needed beyond that.
 	        		CookiesManagerUtil.addCookie(CookiesConstants.CONSENT_TYPE_NECESSARY, cookie, httpServletRequest, httpServletResponse);
 	            	
 	            	 // Force logout by redirecting to /c/portal/logout

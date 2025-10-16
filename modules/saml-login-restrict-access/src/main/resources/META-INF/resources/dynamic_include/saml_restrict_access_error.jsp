@@ -6,10 +6,13 @@
 	</liferay-util:buffer>
 	
 	<aui:script>
-		Liferay.Util.openToast({
-			message: '<%= HtmlUtil.escapeJS(msg) %>',
-			type: 'danger',
-			autoClose: 10000,
-		});
+		if (typeof displayedSAMLRestrictAccessException === 'undefined' || displayedSAMLRestrictAccessException !== true) {
+			var displayedSAMLRestrictAccessException = true;
+			Liferay.Util.openToast({
+				message: '<%= HtmlUtil.escapeJS(msg) %>',
+				type: 'danger',
+				autoClose: 10000,
+			});		
+		}
 	</aui:script>
 </c:if>
