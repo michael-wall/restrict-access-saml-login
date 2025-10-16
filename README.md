@@ -63,7 +63,7 @@ restrict.access.login.event.siteRoleIds=
 2025-10-17 16:11:09.008 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:97] User hasn't got restricted role: barry white
 ```
 
-## Removing the Liferay 'danger toast' ##
+## Removing the Liferay 'danger toast' error message ##
 - Remove the cookie setting logic from com.mw.saml.login.event.SAMLRestrictAccessLoginEvent.java:
 ```
 Cookie cookie = new Cookie(SAMLRestrictAccessConstants.COOKIES.SAML_LOGIN_RESTRICT_ACCESS, SAMLRestrictAccessException.class.getSimpleName());
