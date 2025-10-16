@@ -87,10 +87,11 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 				_log.info("Forcing logout for: " + permissionChecker.getUser().getFullName());
 
 	            try {
+	            	// Using a cookie here is a workaround because triggering a redirect to '/c/portal/logout' will terminate the current session and create a new one.
+	            	// Meaning we can't pass it in session for the DynamicInclude to pick up...
+	            	// Similarly we can't pass as a reguest parameter since it will be ignored / dropped.
 	        		Cookie cookie = new Cookie(SAMLRestrictAccessConstants.COOKIES.SAML_LOGIN_RESTRICT_ACCESS, SAMLRestrictAccessException.class.getSimpleName());
-
-	        		cookie.setMaxAge(3); // Persistent for 3 seconds
-
+	        		cookie.setMaxAge(3);
 	        		CookiesManagerUtil.addCookie(CookiesConstants.CONSENT_TYPE_NECESSARY, cookie, httpServletRequest, httpServletResponse);
 	            	
 	            	 // Force logout by redirecting to /c/portal/logout
