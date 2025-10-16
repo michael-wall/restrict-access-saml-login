@@ -89,7 +89,7 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 	            try {
 	        		Cookie cookie = new Cookie(SAMLRestrictAccessConstants.COOKIES.SAML_LOGIN_RESTRICT_ACCESS, SAMLRestrictAccessException.class.getSimpleName());
 
-	        		cookie.setMaxAge(5); // Persistent for 5 seconds
+	        		cookie.setMaxAge(3); // Persistent for 3 seconds
 
 	        		CookiesManagerUtil.addCookie(CookiesConstants.CONSENT_TYPE_NECESSARY, cookie, httpServletRequest, httpServletResponse);
 	            	
