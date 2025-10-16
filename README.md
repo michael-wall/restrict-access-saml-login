@@ -1,6 +1,6 @@
 ## Introduction ##
 - This 'proof of concept' is designed for the scenario of preventing SAML SSO users with Administrator or other privileged Roles from logging into specific node(s) in a Liferay DXP implementation that has 'public' and 'private' nodes.
-- The implementation is a custom OSGi module containing a LifecycleAction OSGi component that will check a SAML users Regular Roles and Site Roles in Liferay and determine whether a forced logout should be triggered for the user.
+- The implementation is a custom OSGi module containing a Login Event LifecycleAction OSGi component that will check a SAML users Regular Roles and Site Roles in Liferay and determine whether a forced logout should be triggered for the user.
 - It is specifically designed for use with SAML SSO where Liferay is the SAML SP using the out of the box SAML SP implementation. If the user has not logged in with out of the box Liferay SAML SP then it will not do anything.
 - The solution assumes that each Liferay cluster node has a unique portal properties file that can be configured specifically for that Liferay cluster node.
 - If a user is logged out by the component, a standard Liferay 'danger toast' is triggered using a custom Dynamic Include. The error message will be displayed for 10 seconds in the bottom right of the screen after the logout redirection completes:
