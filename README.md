@@ -16,7 +16,7 @@
   - If the user has any of the specified Site Roles in any of the specified Sites (as defined in the custom ...siteGroupIds and ...siteRoleIds portal properties).
 
 ## Setup ##
-- Add the following portal properties to the nodes of the target environment:
+- Add the following portal properties to each node of the target environment:
 
 | Property  | Type | Default | Description |
 | -------- | ------- | ------- |  ------- |
@@ -38,9 +38,8 @@ restrict.access.login.event.regularRoleIds=
 restrict.access.login.event.siteGroupIds=
 restrict.access.login.event.siteRoleIds=
 ```
-
 - Build the custom OSGi module.
-- Start the Liferay node and custom OSGi module.
+- Start the Liferay cluster and deploy the custom OSGi module to each node.
 - Confirm that the custom OSGi module deploys without any errors for example:
 ```
 2025-10-17 16:04:41.415 INFO  [fileinstall-directory-watcher][SAMLRestrictAccessLoginEvent:45] Activating
