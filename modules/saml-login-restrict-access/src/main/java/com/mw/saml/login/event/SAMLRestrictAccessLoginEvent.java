@@ -109,13 +109,17 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 	                throw new ActionException(e);
 	            }	            
 			} else {
-				_log.info("User hasn't got restricted role: " + permissionChecker.getUser().getFullName());
+				_log.info("User hasn't got a restricted Role: " + permissionChecker.getUser().getFullName());
 			}
 		}
 	}
 	
 	private boolean hasRestrictedRegularRole(PermissionChecker permissionChecker) {
-		if (permissionChecker.isOmniadmin() || permissionChecker.isCompanyAdmin(permissionChecker.getCompanyId())) return true;
+		if (permissionChecker.isOmniadmin() || permissionChecker.isCompanyAdmin(permissionChecker.getCompanyId())) {
+			_log.info("User has Administrator Role: " + permissionChecker.getUser().getFullName());
+			
+			return true;
+		}
 		
 		// Check based on custom regular role restrictions from restrict.access.login.event.regularRoleIds
 		if (regularRoleIds != null || regularRoleIds.length > 0) {
@@ -125,7 +129,11 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 				Set<Long> restrictedRoleSet = Arrays.stream(regularRoleIds).boxed().collect(Collectors.toSet());
 
 				for (long usersRegularRoleId : usersRegularRoleIds) {
-				    if (restrictedRoleSet.contains(usersRegularRoleId)) return true;
+				    if (restrictedRoleSet.contains(usersRegularRoleId)) {
+						_log.info("User has a restricted Regular Role: " + permissionChecker.getUser().getFullName());
+				    	
+				    	return true;
+				    }
 				}	
 			}
 		}
@@ -147,8 +155,17 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 		if (siteGroupIds == null || siteGroupIds.length == 0) return false;
 		
 		for (long siteGroupId: siteGroupIds) {
-			if (permissionChecker.isGroupAdmin(siteGroupId) || permissionChecker.isGroupOwner(siteGroupId)) return true;
-			if (permissionChecker.isContentReviewer(permissionChecker.getCompanyId(), siteGroupId)) return true;
+			if (permissionChecker.isGroupAdmin(siteGroupId) || permissionChecker.isGroupOwner(siteGroupId)) {
+				_log.info("User has a Site Administrator or Site Owner Role: " + permissionChecker.getUser().getFullName());
+				
+				return true;
+			}
+				
+			if (permissionChecker.isContentReviewer(permissionChecker.getCompanyId(), siteGroupId)) {
+				_log.info("User has a Site Content Reviewer Role: " + permissionChecker.getUser().getFullName());
+				
+				return true;
+			}
 
 			// Check based on custom site role restrictions from restrict.access.login.event.siteRoleIds
 			if (siteRoleIds != null || siteRoleIds.length > 0) {
@@ -157,8 +174,12 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 				if (usersSiteRoleIds != null && usersSiteRoleIds.length > 0) {
 					Set<Long> restrictedRoleSet = Arrays.stream(siteRoleIds).boxed().collect(Collectors.toSet());
 
-					for (long usersSiteRoleId : usersSiteRoleIds) {
-					    if (restrictedRoleSet.contains(usersSiteRoleId)) return true;
+					for (long usersSiteRoleId : usersSiteRoleIds) {						
+					    if (restrictedRoleSet.contains(usersSiteRoleId)) {
+							_log.info("User has a restricted Site Role: " + permissionChecker.getUser().getFullName());
+					    	
+					    	return true;
+					    }
 					}					
 				}
 			}

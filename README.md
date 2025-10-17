@@ -5,7 +5,7 @@
 - The solution assumes that each Liferay cluster node has a unique portal properties file that can be configured specifically for that Liferay cluster node.
 - If a user is logged out by the component, a standard Liferay 'danger toast' is triggered using a custom Dynamic Include. The error message will be displayed for 10 seconds in the bottom right of the screen after the logout redirection completes:
 
-![Error Message](screenshots/restricted_error_message.jpg)
+![Error Message](screenshots/saml_restrict_error_message.jpg)
 
 ## Performed Checks ##
 - Based on the setup it will force a logout in the following scenarios for a SAML SSO user:
@@ -43,25 +43,39 @@ restrict.access.login.event.siteRoleIds=
 - Start the Liferay cluster and deploy the custom OSGi module to each node.
 - Confirm that the custom OSGi module deploys without any errors for example:
 ```
-2025-10-17 16:04:41.415 INFO  [fileinstall-directory-watcher][SAMLRestrictAccessLoginEvent:45] Activating
-2025-10-17 16:04:41.416 INFO  [fileinstall-directory-watcher][SAMLRestrictAccessLoginEvent:49] restrictAccessEnabled: true
-2025-10-17 16:04:41.434 INFO  [fileinstall-directory-watcher][SAMLRestrictAccessLoginEvent:57] Activated
+2025-10-17 10:38:24.715 INFO  ...[SAMLRestrictAccessLoginEvent:50] Activating
+2025-10-17 10:38:24.716 INFO  ...[SAMLRestrictAccessLoginEvent:54] restrictAccessEnabled: true
+2025-10-17 10:38:24.718 INFO  ...[SAMLRestrictAccessLoginEvent:62] Activated
+2025-10-17 10:38:24.718 INFO  ...[SAMLRestrictAccessJSPDynamicInclude:35] Activating
+2025-10-17 10:38:24.720 INFO  ...[SAMLRestrictAccessJSPDynamicInclude:39] restrictAccessEnabled: true
+2025-10-17 10:38:24.721 INFO  ...[SAMLRestrictAccessJSPDynamicInclude:41] Activated
 ```
 - Test the various scenarios based on the custom portal properties.
 
 ## Logging ##
-- The logging for SAMLRestrictAccessLoginEvent class is all INFO level for test purposes. Change some (or all) to DEBUG as required.
-- Sample logging where a user has a restricted Role:
-```
-2025-10-17 16:06:28.318 DEBUG  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:69] samlSpSession createDate: Sun Oct 12 16:06:28 GMT 2025
-2025-10-17 16:06:28.320 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:79] Verifying Roles for: arthur beesley
-2025-10-17 16:06:28.355 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:84] Forcing logout for: arthur beesley
-```
+- The logging for SAMLRestrictAccessLoginEvent class is mostly INFO level for test purposes. Change some (or all) to DEBUG as required.
 - Sample logging where a user doesn't have a restricted Role:
 ```
-2025-10-17 16:11:08.994 DEBUG  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:69] samlSpSession createDate: Sun Oct 12 16:11:08 GMT 2025
-2025-10-17 16:11:08.995 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:79] Verifying Roles for: barry white
-2025-10-17 16:11:09.008 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:97] User hasn't got restricted role: barry white
+2025-10-17 10:43:58.652 INFO  [http-nio-8080-exec-2][SAMLRestrictAccessLoginEvent:84] Verifying Roles for: Michael Wall
+2025-10-17 10:43:58.743 INFO  [http-nio-8080-exec-2][SAMLRestrictAccessLoginEvent:112] User hasn't got a restricted Role: Michael Wall
+```
+- Sample logging where a user has a restricted Role:
+```
+2025-10-17 10:39:27.910 INFO  [http-nio-8080-exec-8][SAMLRestrictAccessLoginEvent:84] Verifying Roles for: max power
+2025-10-17 10:39:27.910 INFO  [http-nio-8080-exec-8][SAMLRestrictAccessLoginEvent:119] User has Administrator Role: max power
+2025-10-17 10:39:27.910 INFO  [http-nio-8080-exec-8][SAMLRestrictAccessLoginEvent:89] Forcing logout for: max power
+
+2025-10-17 10:39:03.283 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:84] Verifying Roles for: basil rathbone
+2025-10-17 10:39:03.283 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:133] User has a restricted Regular Role: basil rathbone
+2025-10-17 10:39:03.283 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:89] Forcing logout for: basil rathbone
+
+2025-10-17 10:38:38.855 INFO  [http-nio-8080-exec-3][SAMLRestrictAccessLoginEvent:84] Verifying Roles for: arthur beesley
+2025-10-17 10:38:38.871 INFO  [http-nio-8080-exec-3][SAMLRestrictAccessLoginEvent:159] User has a Site Administrator or Site Owner Role: arthur beesley
+2025-10-17 10:38:38.871 INFO  [http-nio-8080-exec-3][SAMLRestrictAccessLoginEvent:89] Forcing logout for: arthur beesley
+
+2025-10-17 10:40:01.713 INFO  [http-nio-8080-exec-6][SAMLRestrictAccessLoginEvent:84] Verifying Roles for: barry white
+2025-10-17 10:40:01.713 INFO  [http-nio-8080-exec-6][SAMLRestrictAccessLoginEvent:179] User has a restricted Site Role: barry white
+2025-10-17 10:40:01.713 INFO  [http-nio-8080-exec-6][SAMLRestrictAccessLoginEvent:89] Forcing logout for: barry white
 ```
 
 ## Removing the Liferay 'danger toast' error message ##
