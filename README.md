@@ -94,7 +94,18 @@ com.mw.saml.login.event.SAMLRestrictAccessJSPDynamicInclude.java
 META-INF/resources/dynamic_include/init.jsp
 META-INF/resources/dynamic_include/saml_restrict_access_error.jsp
 ```
-  
+
+## TODO / Configuration Improvements ##
+- The set of Sites is read once per node from the portal property restrict.access.login.event.siteGroupIds for convenience and performance.
+  - A restart is required to update the property e.g. if a Site is added to the system.
+  - The code can be updated to dynamically generate the set of Sites, but bear in mind the code would need to retrieve the set of Sites each time the code is called to ensure it has the latest set of Sites.
+  - Alternatively the set of Sites could be moved to custom Instance Settings.
+- The sets of restricted Regular Roles and Site Roles are read once per node from the portal properties for convenience and performance.
+  - A restart is required to update these properties e.g. if a new restricted Role of either type is added to the system.
+  - These values could be moved to custom Instance Settings.
+ - Note: Do not attempt to move the restrict.access.login.event.enabled property to custom Instance Settings.
+   - Instance Settings (and System Settings) are shared by all nodes in the cluster via the Configuration_ database table in ALL circumstances.
+
 ## Notes ##
 - This is a ‘proof of concept’ that is being provided ‘as is’ without any support coverage or warranty.
 - The implementation uses a custom OSGi module meaning it is compatible with Liferay DXP Self-Hosted and Liferay PaaS, but is not compatible with Liferay SaaS.
