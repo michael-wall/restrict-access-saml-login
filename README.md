@@ -12,7 +12,7 @@
   - If the user has the Administrator Role or the Omni Administrator Role for the Virtual Instance.
   - If the user has any of the specified Regular Roles in the Virtual Instance (as defined in the custom ...regularRoleIds portal property).
   - If the user has the Site Owner Role or the Site Administrator Role in any of the specified Sites (as defined in the custom ...siteGroupIds portal property).
-  - If the user has the Content Reviewer Role for one of the specified Sites (as defined in the custom ...siteGroupIds portal property).
+  - If the user has the Site Content Reviewer Role for one of the specified Sites (as defined in the custom ...siteGroupIds portal property).
   - If the user has any of the specified Site Roles in any of the specified Sites (as defined in the custom ...siteGroupIds and ...siteRoleIds portal properties).
 
 ## Setup ##
