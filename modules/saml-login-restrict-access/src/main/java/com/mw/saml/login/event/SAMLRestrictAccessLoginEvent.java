@@ -188,8 +188,11 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 					}
 				}
 			}
-			
 		} catch (PortalException e) {
+			_log.error("Error occured processing hasAdditionalSiteRole: " + permissionChecker.getUser().getFullName());
+			_log.error(e.getClass() + ": " + e.getMessage(), e);
+			
+			
 			return false;
 		}
 		
