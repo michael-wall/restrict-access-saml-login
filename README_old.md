@@ -11,7 +11,9 @@
 - Based on the setup it will force a logout in the following scenarios for a SAML SSO user:
   - If the user has the Administrator Role or the Omni Administrator Role for the Virtual Instance.
   - If the user has any of the specified Regular Roles in the Virtual Instance (as defined in the custom ...regularRoleIds portal property).
-  - If the user has any Site Role other than Site Member, User or Guest. (All 3 are automatically assigned to users when they are added to a Site.)
+  - If the user has the Site Owner Role or the Site Administrator Role in any of the specified Sites (as defined in the custom ...siteGroupIds portal property).
+  - If the user has the Site Content Reviewer Role for one of the specified Sites (as defined in the custom ...siteGroupIds portal property).
+  - If the user has any of the specified Site Roles in any of the specified Sites (as defined in the custom ...siteGroupIds and ...siteRoleIds portal properties).
 
 ## Setup ##
 - Custom portal properties are used to allow individual nodes in the same customer to behave differently based on the portal properties for the specific node.
@@ -21,15 +23,21 @@
 | -------- | ------- | ------- |  ------- |
 | restrict.access.login.event.enabled | boolean | false | Set to true to enforce the restrictions for the current node. Set to false to not enforce restrictions.|
 | restrict.access.login.event.regularRoleIds | comma separated IDs | empty string | Comma separated list of Regular roleId values. These can be roleIds from out of the box Regular Roles or from custom Regular Roles. Leave empty or don't include the property if this check not required. |
+| restrict.access.login.event.siteGroupIds | comma separated IDs | empty string | Comma separated list of Site groupId values. These are the Sites whose Site Roles should be checked. Leave empty or don't include the property if this check is not required. |
+| restrict.access.login.event.siteRoleIds | comma separated IDs | empty string | Comma separated list of Site Role roleId values. These can be the roleIds from out of the box Site Roles or from custom Site Roles. If using this check then the siteGroupIds property must also be populated. Leave empty or don't include if this chek is not applicable. |
   - Sample properties for a node where privileged uses are NOT allowed to login: 
 ```
 restrict.access.login.event.enabled=true
 restrict.access.login.event.regularRoleIds=43787,43788,43791
+restrict.access.login.event.siteGroupIds=43375,43482,43555
+restrict.access.login.event.siteRoleIds=43793,43794,43797
 ```
   - Sample properties for a node where privileged uses are allowed to login: 
 ```
 restrict.access.login.event.enabled=false
 restrict.access.login.event.regularRoleIds=
+restrict.access.login.event.siteGroupIds=
+restrict.access.login.event.siteRoleIds=
 ```
 - Build the custom OSGi module.
 - Start the Liferay cluster and deploy the custom OSGi module to each node.
@@ -61,8 +69,12 @@ restrict.access.login.event.regularRoleIds=
 2025-10-17 10:39:03.283 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:133] User has a restricted Regular Role: basil rathbone
 2025-10-17 10:39:03.283 INFO  [http-nio-8080-exec-10][SAMLRestrictAccessLoginEvent:89] Forcing logout for: basil rathbone
 
+2025-10-17 10:38:38.855 INFO  [http-nio-8080-exec-3][SAMLRestrictAccessLoginEvent:84] Verifying Roles for: arthur beesley
+2025-10-17 10:38:38.871 INFO  [http-nio-8080-exec-3][SAMLRestrictAccessLoginEvent:159] User has a Site Administrator or Site Owner Role: arthur beesley
+2025-10-17 10:38:38.871 INFO  [http-nio-8080-exec-3][SAMLRestrictAccessLoginEvent:89] Forcing logout for: arthur beesley
+
 2025-10-17 10:40:01.713 INFO  [http-nio-8080-exec-6][SAMLRestrictAccessLoginEvent:84] Verifying Roles for: barry white
-2025-10-17 10:40:01.713 INFO  [http-nio-8080-exec-6][SAMLRestrictAccessLoginEvent:179] User has a Site Role other than Site Member: barry white
+2025-10-17 10:40:01.713 INFO  [http-nio-8080-exec-6][SAMLRestrictAccessLoginEvent:179] User has a restricted Site Role: barry white
 2025-10-17 10:40:01.713 INFO  [http-nio-8080-exec-6][SAMLRestrictAccessLoginEvent:89] Forcing logout for: barry white
 ```
 
@@ -84,9 +96,13 @@ META-INF/resources/dynamic_include/saml_restrict_access_error.jsp
 ```
 
 ## TODO / Configuration Improvements ##
-- The set of restricted Regular Roles is read once per node from the portal properties for convenience and performance.
-  - A restart is required to update the property e.g. if a new restricted Role is added to the system.
-  - This value could be moved to custom Instance Settings.
+- The set of Sites is read once per node from the portal property restrict.access.login.event.siteGroupIds for convenience and performance.
+  - A restart is required to update the property e.g. if a Site is added to the system.
+  - The code can be updated to dynamically generate the set of Sites, but bear in mind the code would need to retrieve the set of Sites each time the code is called to ensure it has the latest set of Sites.
+  - Alternatively the set of Sites could be moved to custom Instance Settings.
+- The sets of restricted Regular Roles and Site Roles are read once per node from the portal properties for convenience and performance.
+  - A restart is required to update these properties e.g. if a new restricted Role of either type is added to the system.
+  - These values could be moved to custom Instance Settings.
  - Note: Do not attempt to move the restrict.access.login.event.enabled property to custom Instance Settings.
    - Instance Settings (and System Settings) are shared by all nodes in the cluster via the Configuration_ database table in ALL circumstances.
 

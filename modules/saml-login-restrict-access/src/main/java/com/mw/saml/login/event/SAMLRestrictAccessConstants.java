@@ -13,8 +13,8 @@ public class SAMLRestrictAccessConstants {
 		
 		public static final String RESTRICT_ACCESS_LOGIN_EVENT_REGULAR_ROLE_IDS = "restrict.access.login.event.regularRoleIds";
 		
-		public static final String RESTRICT_ACCESS_LOGIN_EVENT_SITE_GROUP_IDS = "restrict.access.login.event.siteGroupIds";
-		
-		public static final String RESTRICT_ACCESS_LOGIN_EVENT_SITE_ROLE_IDS = "restrict.access.login.event.siteRoleIds";
+//		public static final String RESTRICT_ACCESS_LOGIN_EVENT_SITE_GROUP_IDS = "restrict.access.login.event.siteGroupIds";
+//		
+//		public static final String RESTRICT_ACCESS_LOGIN_EVENT_SITE_ROLE_IDS = "restrict.access.login.event.siteRoleIds";
 	}
 }

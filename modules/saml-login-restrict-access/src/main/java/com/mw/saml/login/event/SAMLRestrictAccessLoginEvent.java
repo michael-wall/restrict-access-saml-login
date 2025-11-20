@@ -5,11 +5,16 @@ import com.liferay.portal.kernel.cookies.constants.CookiesConstants;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.events.LifecycleAction;
 import com.liferay.portal.kernel.events.LifecycleEvent;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -21,6 +26,7 @@ import com.liferay.saml.runtime.servlet.profile.WebSsoProfile;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,8 +61,9 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 
 		if (_restrictAccessEnabled) {
 			regularRoleIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_REGULAR_ROLE_IDS), ""));
-			siteGroupIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_SITE_GROUP_IDS), ""));
-			siteRoleIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_SITE_ROLE_IDS), ""));
+						
+			//siteGroupIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_SITE_GROUP_IDS), ""));
+			//siteRoleIds = getIdsArray(GetterUtil.getString(PropsUtil.get(SAMLRestrictAccessConstants.PORTAL_PROPERTIES.RESTRICT_ACCESS_LOGIN_EVENT_SITE_ROLE_IDS), ""));
 		}
 		
 		if (_log.isInfoEnabled()) _log.info("Activated");
@@ -85,7 +92,7 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 			
 			PermissionChecker permissionChecker = PermissionCheckerFactoryUtil.create(user);
 			
-			if (hasRestrictedRegularRole(permissionChecker) || hasRestrictedSiteRole(permissionChecker)) {		
+			if (hasRestrictedRegularRole(permissionChecker) || hasAdditionalSiteRole(permissionChecker)) {		
 				_log.info("Forcing logout for: " + permissionChecker.getUser().getFullName());
 
 	            try {
@@ -151,42 +158,80 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 		}
 	}
 	
-	private boolean hasRestrictedSiteRole(PermissionChecker permissionChecker) {
-		if (siteGroupIds == null || siteGroupIds.length == 0) return false;
+	private boolean hasAdditionalSiteRole(PermissionChecker permissionChecker) {
+		Role siteMemberRole = _roleLocalService.fetchRole(permissionChecker.getCompanyId(), RoleConstants.SITE_MEMBER);
+		Role userRole = _roleLocalService.fetchRole(permissionChecker.getCompanyId(), RoleConstants.USER);
+		Role guestRole = _roleLocalService.fetchRole(permissionChecker.getCompanyId(), RoleConstants.GUEST);
 		
-		for (long siteGroupId: siteGroupIds) {
-			if (permissionChecker.isGroupAdmin(siteGroupId) || permissionChecker.isGroupOwner(siteGroupId)) {
-				_log.info("User has a Site Administrator or Site Owner Role: " + permissionChecker.getUser().getFullName());
+		
+		if (siteMemberRole == null || userRole == null || guestRole == null ) {
+			_log.error("Unable to find Site Member, User or Guest role. Site Role check NOT performed: " + permissionChecker.getUser().getFullName());
+			
+			return false;
+		}
+		
+		try {
+			List<Group> sites = _groupLocalService.getUserSitesGroups(permissionChecker.getUserId());
+			
+			for (Group site: sites) {
+				//_log.info("Checking Site: " + site.getFriendlyURL());
 				
-				return true;
-			}
+				long[] siteRoleIds = permissionChecker.getRoleIds(permissionChecker.getUserId(), site.getGroupId());
 				
-			if (permissionChecker.isContentReviewer(permissionChecker.getCompanyId(), siteGroupId)) {
-				_log.info("User has a Site Content Reviewer Role: " + permissionChecker.getUser().getFullName());
-				
-				return true;
-			}
-
-			// Check based on custom site role restrictions from restrict.access.login.event.siteRoleIds
-			if (siteRoleIds != null || siteRoleIds.length > 0) {
-				long[] usersSiteRoleIds = permissionChecker.getRoleIds(permissionChecker.getUserId(), siteGroupId);
-				
-				if (usersSiteRoleIds != null && usersSiteRoleIds.length > 0) {
-					Set<Long> restrictedRoleSet = Arrays.stream(siteRoleIds).boxed().collect(Collectors.toSet());
-
-					for (long usersSiteRoleId : usersSiteRoleIds) {						
-					    if (restrictedRoleSet.contains(usersSiteRoleId)) {
-							_log.info("User has a restricted Site Role: " + permissionChecker.getUser().getFullName());
-					    	
-					    	return true;
-					    }
-					}					
+				for (int i = 0; i < siteRoleIds.length; i++) {
+					//_log.info(siteRoleIds[i] + _roleLocalService.fetchRole(siteRoleIds[i]).getName());
+					
+					if (siteRoleIds[i] != siteMemberRole.getRoleId() && siteRoleIds[i] != userRole.getRoleId() && siteRoleIds[i] != guestRole.getRoleId()) {
+						_log.info("User has a Site Role other than Site Member / User / Guest: " + permissionChecker.getUser().getFullName());
+						
+						return true;
+					}
 				}
 			}
+			
+		} catch (PortalException e) {
+			return false;
 		}
 		
 		return false;
 	}
+	
+//	private boolean hasRestrictedSiteRole(PermissionChecker permissionChecker) {
+//		if (siteGroupIds == null || siteGroupIds.length == 0) return false;
+//		
+//		for (long siteGroupId: siteGroupIds) {
+//			if (permissionChecker.isGroupAdmin(siteGroupId) || permissionChecker.isGroupOwner(siteGroupId)) {
+//				_log.info("User has a Site Administrator or Site Owner Role: " + permissionChecker.getUser().getFullName());
+//				
+//				return true;
+//			}
+//				
+//			if (permissionChecker.isContentReviewer(permissionChecker.getCompanyId(), siteGroupId)) {
+//				_log.info("User has a Site Content Reviewer Role: " + permissionChecker.getUser().getFullName());
+//				
+//				return true;
+//			}
+//
+//			// Check based on custom site role restrictions from restrict.access.login.event.siteRoleIds
+//			if (siteRoleIds != null || siteRoleIds.length > 0) {
+//				long[] usersSiteRoleIds = permissionChecker.getRoleIds(permissionChecker.getUserId(), siteGroupId);
+//				
+//				if (usersSiteRoleIds != null && usersSiteRoleIds.length > 0) {
+//					Set<Long> restrictedRoleSet = Arrays.stream(siteRoleIds).boxed().collect(Collectors.toSet());
+//
+//					for (long usersSiteRoleId : usersSiteRoleIds) {						
+//					    if (restrictedRoleSet.contains(usersSiteRoleId)) {
+//							_log.info("User has a restricted Site Role: " + permissionChecker.getUser().getFullName());
+//					    	
+//					    	return true;
+//					    }
+//					}					
+//				}
+//			}
+//		}
+//		
+//		return false;
+//	}
 	
 	private long[] getIdsArray(String idsString) {
 		if (Validator.isNull(idsString)) return null;
@@ -215,6 +260,9 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 	private RoleLocalService _roleLocalService;
 	
 	@Reference
+	private GroupLocalService _groupLocalService;
+	
+	@Reference
 	private UserLocalService _userLocalService;
 	
 	@Reference
@@ -224,10 +272,10 @@ public class SAMLRestrictAccessLoginEvent implements LifecycleAction {
 	private SamlSpSessionLocalService _samlSpSessionLocalService;	
 	
 	private boolean _restrictAccessEnabled = false;
-
+	
 	private long regularRoleIds[];
-	private long siteGroupIds[];
-	private long siteRoleIds[];
+	//private long siteGroupIds[];
+	//private long siteRoleIds[];
 	
 	private static final Log _log = LogFactoryUtil.getLog(SAMLRestrictAccessLoginEvent.class);	 
 }
